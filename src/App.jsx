@@ -41,9 +41,11 @@ function App() {
     <div>
       <h1>My Hacker Stories</h1>
 
-      <Search
-        onSearch={handleSearch}
-        search={search}
+      <InputTextWithLabel
+        id='search'
+        label='Search'
+        value={search}
+        onInputChange={handleSearch}
       />
       <hr/>
       <List stories={searchStories}/>
@@ -52,16 +54,16 @@ function App() {
   )
 }
 
-const Search = ({search, onSearch}) => {
+const InputTextWithLabel = ({id, label, value, onInputChange}) => {
 
   return (
     <>
-      <label htmlFor='search'>Search:</label>
+      <label htmlFor={id}>{label}</label>
       <input
         type='text'
-        id='search'
-        onChange={onSearch}
-        value={search}
+        id={id}
+        onChange={onInputChange}
+        value={value}
       />
     </>
   )
