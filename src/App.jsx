@@ -1,15 +1,5 @@
-import {useEffect, useState} from "react";
-
-
-const useStorageState = (key, initialState) => {
-  const [value, SetValue] = useState(localStorage.getItem(key) || initialState);
-
-  useEffect(() => {
-    localStorage.setItem('value', value)
-  }, [value, key]);
-
-  return [value, SetValue];
-}
+import {useEffect, useRef} from "react";
+import {useStorageState} from "./hooks/useStorageState";
 
 function App() {
   const stories = [
@@ -45,7 +35,6 @@ function App() {
         id='search'
         value={search}
         onInputChange={handleSearch}
-        children
       >
         <strong>Search: </strong>
       </InputTextWithLabel>
@@ -56,29 +45,43 @@ function App() {
   )
 }
 
-const InputTextWithLabel = ({id, value, onInputChange, children}) => {
+const InputTextWithLabel = ({id, type = 'text', value, onInputChange, isFocused, children}) => {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    (isFocused && inputRef.current) ? inputRef.current.focus() : null;
+  }, [isFocused]);
 
   return (
     <>
       <label htmlFor={id}>{children}</label>
       <input
-        type='text'
         id={id}
-        onChange={onInputChange}
+        type={type}
         value={value}
+        onChange={onInputChange}
+        ref={inputRef}
+        autoFocus={isFocused}
       />
     </>
   )
 }
 
-const List = ({stories}) => {
+const List = ({stories, isDelete}) => {
   return (
     <ul>
       {stories.map(story =>
-        <Item
-          key={story.objectID}
-          story={story}
-        />
+        <>
+          <Item
+            key={story.objectID}
+            story={story}
+          />
+          <button
+            type='button'
+            onClick={isDelete}
+          >x
+          </button>
+        </>
       )}
     </ul>
   )
