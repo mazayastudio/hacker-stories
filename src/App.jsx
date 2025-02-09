@@ -20,13 +20,14 @@ function App() {
   const [search, setSearch] = useStorageState('search', '')
   const [stories, setStories] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isError, setIsError] = useState(false)
 
   useEffect(() => {
     setIsLoading(true)
     getAsyncStories().then(res => {
       setStories(res.data.stories)
       setIsLoading(false)
-    })
+    }).catch(() => setIsError(true))
   }, []);
   const handleSearch = event => setSearch(event.target.value)
   const searchStories = stories.filter(story => story.title.toLowerCase().includes(search.toLowerCase()))
@@ -47,6 +48,7 @@ function App() {
         <strong>Search: </strong>
       </InputTextWithLabel>
       <hr/>
+      {isError && <p>Error loading stories</p>}
       {
         isLoading ? <p>Loading...</p> :
           <List
