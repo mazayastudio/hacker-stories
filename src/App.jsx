@@ -1,31 +1,39 @@
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useStorageState} from "./hooks/useStorageState";
 
 function App() {
-  const stories = [
-    {
-      title: 'React',
-      url: 'https://react.dev/',
-      author: 'Jordan Walke',
-      num_comments: 3,
-      points: 4,
-      objectID: 0
-    },
-    {
-      title: 'Redux',
-      url: 'https://redux.js.org/',
-      author: 'Dan Abramov, Andrew Clark',
-      num_comments: 2,
-      points: 5,
-      objectID: 1
-    }
-  ]
+  const initialStories = [{
+    title: 'React', url: 'https://react.dev/', author: 'Jordan Walke', num_comments: 3, points: 4, objectID: 0
+  }, {
+    title: 'Redux',
+    url: 'https://redux.js.org/',
+    author: 'Dan Abramov, Andrew Clark',
+    num_comments: 2,
+    points: 5,
+    objectID: 1
+  }]
 
+  const getAsyncStories = () =>
+    new Promise(resolve =>
+      setTimeout(() =>
+        resolve({data: {stories: initialStories}}), 2000))
   const [search, setSearch] = useStorageState('search', '')
+  const [stories, setStories] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
+  useEffect(() => {
+    setIsLoading(true)
+    getAsyncStories().then(res => {
+      setStories(res.data.stories)
+      setIsLoading(false)
+    })
+  }, []);
   const handleSearch = event => setSearch(event.target.value)
   const searchStories = stories.filter(story => story.title.toLowerCase().includes(search.toLowerCase()))
-
+  const handleRemoveStory = item => {
+    const newStories = stories.filter(story => story.objectID !== item.objectID)
+    setStories(newStories)
+  }
 
   return (
     <div>
@@ -39,7 +47,13 @@ function App() {
         <strong>Search: </strong>
       </InputTextWithLabel>
       <hr/>
-      <List stories={searchStories}/>
+      {
+        isLoading ? <p>Loading...</p> :
+          <List
+            stories={searchStories}
+            isDelete={handleRemoveStory}
+          />
+      }
 
     </div>
   )
@@ -52,51 +66,43 @@ const InputTextWithLabel = ({id, type = 'text', value, onInputChange, isFocused,
     (isFocused && inputRef.current) ? inputRef.current.focus() : null;
   }, [isFocused]);
 
-  return (
-    <>
-      <label htmlFor={id}>{children}</label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={onInputChange}
-        ref={inputRef}
-        autoFocus={isFocused}
-      />
-    </>
-  )
+  return (<>
+    <label htmlFor={id}>{children}</label>
+    <input
+      id={id}
+      type={type}
+      value={value}
+      onChange={onInputChange}
+      ref={inputRef}
+      autoFocus={isFocused}
+    />
+  </>)
 }
 
 const List = ({stories, isDelete}) => {
-  return (
-    <ul>
-      {stories.map(story =>
-        <>
-          <Item
-            key={story.objectID}
-            story={story}
-          />
-          <button
-            type='button'
-            onClick={isDelete}
-          >x
-          </button>
-        </>
-      )}
-    </ul>
-  )
+  return (<ul>
+    {stories.map(story => <Item
+      key={story.objectID}
+      story={story}
+      isDelete={isDelete}
+    />)}
+  </ul>)
 }
 
-const Item = ({story}) => {
-  return (
-    <li>
+const Item = ({story, isDelete}) => {
+  return (<li>
       <span>
         <a href={story.url}>{story.title}</a>
       </span>
-      <span>{story.author}</span>
-      <span>{story.num_comments}</span>
-      <span>{story.points}</span>
-    </li>
-  )
+    <span>{story.author}</span>
+    <span>{story.num_comments}</span>
+    <span>{story.points}</span>
+
+    <button
+      type='button'
+      onClick={() => isDelete(story)}
+    >x
+    </button>
+  </li>)
 }
 export default App
